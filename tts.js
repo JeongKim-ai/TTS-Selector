@@ -2,22 +2,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const languageSelect = document.getElementById("language");
   const voiceSelect = document.getElementById("voice");
   const textInput = document.getElementById("text");
-  const speakBtn = document.getElementById("speakBtn");
+  const speakButton = document.getElementById("speak");
+  const audioPlayer = document.getElementById("audio");
 
+  // Load voices from voice.json
   fetch("voice.json")
     .then(response => response.json())
     .then(data => {
-      for (const [langCode, langData] of Object.entries(data)) {
+      for (const language in data) {
         const option = document.createElement("option");
-        option.value = langCode;
-        option.textContent = langData.name;
+        option.value = language;
+        option.textContent = language;
         languageSelect.appendChild(option);
       }
 
       languageSelect.addEventListener("change", () => {
-        const selectedLang = languageSelect.value;
+        const selectedLanguage = languageSelect.value;
         voiceSelect.innerHTML = "";
-        data[selectedLang].voices.forEach(voice => {
+        data[selectedLanguage].forEach(voice => {
           const option = document.createElement("option");
           option.value = voice;
           option.textContent = voice;
@@ -25,34 +27,33 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
 
-      // Trigger change event to populate voices on load
+      // Trigger change event to populate voices for the first language
       languageSelect.dispatchEvent(new Event("change"));
     });
 
-  speakBtn.addEventListener("click", () => {
-    const selectedVoice = voiceSelect.value;
+  speakButton.addEventListener("click", () => {
+    const language = languageSelect.value;
+    const voice = voiceSelect.value;
     const text = textInput.value;
 
-    // Replace with actual API call to Acapela
-    fetch("https://www.acapela-group.com/demos/demo.cgi", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: new URLSearchParams({
-        voice: selectedVoice,
-        text: text,
-        // Add other necessary parameters as required by Acapela's API
-      })
-    })
+    // Construct the request to Acapela TTS service
+    // Note: Replace the URL and parameters with actual Acapela API endpoints and parameters
+    const apiUrl = "https://api.acapela-group.com/tts"; // Placeholder URL
+    const params = new URLSearchParams({
+      voice: voice,
+      text: text,
+      // Include additional required parameters such as authentication tokens
+    });
+
+    fetch(`${apiUrl}?${params.toString()}`)
       .then(response => response.blob())
       .then(blob => {
         const audioUrl = URL.createObjectURL(blob);
-        const audio = new Audio(audioUrl);
-        audio.play();
+        audioPlayer.src = audioUrl;
+        audioPlayer.play();
       })
       .catch(error => {
-        console.error("Error:", error);
+        console.error("Error fetching audio:", error);
       });
   });
 });
